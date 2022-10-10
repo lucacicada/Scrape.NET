@@ -74,7 +74,7 @@ html.CssOrFail("title");
 
 > All the available extensions methods source code: [NodeExtensions.cs](Scrape.NET/NodeExtensions.cs)
 
-All the utilities automatically decoded, unescaped and trim the result, a `&lt; hey` is trimmed and converted to `< hey`.
+All the utilities automatically decoded, unescape and trim the result, a `&lt; hey` is trimmed and converted to `< hey`.
 
 ### Css and XPath selector
 
