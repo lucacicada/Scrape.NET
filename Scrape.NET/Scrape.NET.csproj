@@ -12,6 +12,7 @@
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<RepositoryUrl>https://github.com/lucacicada/Scrape.NET</RepositoryUrl>
 	</PropertyGroup>
 
 	<ItemGroup>
