@@ -4,16 +4,24 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Net;
 using System.Xml.XPath;
 using AngleSharp.Dom;
 
+/// <summary>
+///     Extensions methods to interact with an <see cref="INode"/>.
+/// </summary>
 public static class NodeExtensions
 {
-    public static string Text(this INode node) => node.TextContent();
-
-    // avoid collision with AngleSharp.NodeExtensions.Text()
-    public static string TextContent(this INode node)
+    /// <summary>
+    ///     Gets the text content of an element and all its descendants.
+    ///     The result string is normalized, trimmed, escaped and always not null.
+    /// </summary>
+    /// <remarks>
+    ///     Different from <see cref="AngleSharp.Dom.NodeExtensions.Text(INode)"/>.
+    /// </remarks>
+    public static string Text(this INode node)
     {
         var text = node?.TextContent;
 
@@ -25,6 +33,22 @@ public static class NodeExtensions
         return Uri.UnescapeDataString(WebUtility.HtmlDecode(text)).Trim();
     }
 
+    /// <summary>
+    ///     Gets the text content of an element and all its descendants.
+    ///     The result string is normalized, trimmed, escaped and always not null.
+    /// </summary>
+    /// <remarks>
+    ///     Different from <see cref="INode.TextContent"/>.
+    /// </remarks>
+    public static string TextContent(this INode node) => Text(node);
+
+    /// <summary>
+    ///     Gets the outer HTML (including the current element) of the element.
+    ///     The result string is normalized, trimmed, escaped and always not null.
+    /// </summary>
+    /// <remarks>
+    ///     Uses <see cref="IElement.OuterHtml"/>.
+    /// </remarks>
     public static string Html(this INode node)
     {
         var html = node is IElement el ? el.OuterHtml : null;
@@ -37,10 +61,50 @@ public static class NodeExtensions
         return Uri.UnescapeDataString(WebUtility.HtmlDecode(html)).Trim();
     }
 
-    public static string HtmlContent(this INode node) => node.Html();
+    /// <summary>
+    ///     Gets the outer HTML (including the current element) of the element.
+    ///     The result string is normalized, trimmed, escaped and always not null.
+    /// </summary>
+    /// <remarks>
+    ///     Uses <see cref="IElement.OuterHtml"/>.
+    /// </remarks>
+    public static string HtmlContent(this INode node) => Html(node);
+
+    /// <summary>
+    ///     Gets the inner HTML (excluding the current element) of the element.
+    ///     The result string is normalized, trimmed, escaped and always not null.
+    /// </summary>
+    /// <remarks>
+    ///     Uses <see cref="IElement.InnerHtml"/>.
+    /// </remarks>
+    public static string InnerHtml(this INode node)
+    {
+        var html = node is IElement el ? el.InnerHtml : null;
+
+        if (html is null)
+        {
+            return string.Empty;
+        }
+
+        return Uri.UnescapeDataString(WebUtility.HtmlDecode(html)).Trim();
+    }
+
+    /// <summary>
+    ///     Gets the inner HTML (excluding the current element) of the element.
+    ///     The result string is normalized, trimmed, escaped and always not null.
+    /// </summary>
+    /// <remarks>
+    ///     Uses <see cref="IElement.InnerHtml"/>.
+    /// </remarks>
+    public static string InnerHtmlContent(this INode node) => InnerHtml(node);
 
     #region Attr
 
+    /// <summary>
+    ///     Gets an attribute from the element.
+    ///     The result text is normalized, trimmed, escaped and always not null.
+    /// </summary>
+    /// <exception cref="AttributeNotFoundException">The attribute <paramref name="name"/> is not present.</exception>
     /// <remarks>
     ///     Use <see cref="AttributeNames"/>
     /// </remarks>
@@ -56,7 +120,14 @@ public static class NodeExtensions
         return Uri.UnescapeDataString(WebUtility.HtmlDecode(value)).Trim();
     }
 
-    [return: NotNullIfNotNull("defaultValue")]
+    /// <summary>
+    ///     Gets an attribute from the element.
+    ///     The result text is normalized, trimmed, escaped and always not null.
+    /// </summary>
+    /// <remarks>
+    ///     Use <see cref="AttributeNames"/>
+    /// </remarks>
+    [return: NotNullIfNotNull(nameof(defaultValue))]
     public static string? Attr(this INode node, string name, string? defaultValue)
     {
         var value = node is IElement el ? el.Attributes.GetNamedItem(null, name)?.Value : null;
@@ -69,6 +140,14 @@ public static class NodeExtensions
         return Uri.UnescapeDataString(WebUtility.HtmlDecode(value)).Trim();
     }
 
+    /// <summary>
+    ///     Gets an attribute from the element.
+    ///     The result text is normalized, trimmed, escaped and always not null.
+    /// </summary>
+    /// <exception cref="AttributeNotFoundException">The attribute <paramref name="name"/> is not present.</exception>
+    /// <remarks>
+    ///     Use <see cref="AttributeNames"/>
+    /// </remarks>
     public static T Attr<T>(this INode node, string name)
     {
         var value = node is IElement el ? el.Attributes.GetNamedItem(null, name)?.Value : null;
@@ -83,7 +162,14 @@ public static class NodeExtensions
         return ChangeType<T>(value);
     }
 
-    [return: NotNullIfNotNull("defaultValue")]
+    /// <summary>
+    ///     Gets an attribute from the element.
+    ///     The result text is normalized, trimmed, escaped and always not null.
+    /// </summary>
+    /// <remarks>
+    ///     Use <see cref="AttributeNames"/>
+    /// </remarks>
+    [return: NotNullIfNotNull(nameof(defaultValue))]
     public static T? Attr<T>(this INode node, string name, T? defaultValue)
     {
         var value = node is IElement el ? el.Attributes.GetNamedItem(null, name)?.Value : null;
@@ -102,17 +188,26 @@ public static class NodeExtensions
 
     #region Src
 
+    /// <summary>
+    ///     Gets the <see cref="AttributeNames.Src"/> attribute from the element.
+    ///     The result is the absolute unescaped uri.
+    /// </summary>
+    /// <exception cref="AttributeNotFoundException">The attribute <see cref="AttributeNames.Src"/> is not present.</exception>
     public static Uri Src(this INode node)
     {
-        var value = node.Attr(AttributeNames.Src);
+        var value = Attr(node, AttributeNames.Src);
 
         return GetUri(node, value);
     }
 
-    [return: NotNullIfNotNull("defaultValue")]
+    /// <summary>
+    ///     Gets the <see cref="AttributeNames.Src"/> attribute from the element.
+    ///     The result is the absolute unescaped uri.
+    /// </summary>
+    [return: NotNullIfNotNull(nameof(defaultValue))]
     public static Uri? Src(this INode node, Uri? defaultValue)
     {
-        var value = node.Attr(AttributeNames.Src, null);
+        var value = Attr(node, AttributeNames.Src, null);
 
         if (value is null)
         {
@@ -122,17 +217,26 @@ public static class NodeExtensions
         return GetUri(node, value);
     }
 
+    /// <summary>
+    ///     Gets the <see cref="AttributeNames.Src"/> attribute from the element.
+    ///     The result is the absolute unescaped uri.
+    /// </summary>
+    /// <exception cref="AttributeNotFoundException">The attribute <see cref="AttributeNames.Src"/> is not present.</exception>
     public static T Src<T>(this INode node)
     {
-        var value = node.Src();
+        var value = Src(node);
 
         return ChangeType<T>(value.GetComponents(UriComponents.AbsoluteUri, UriFormat.Unescaped));
     }
 
-    [return: NotNullIfNotNull("defaultValue")]
+    /// <summary>
+    ///     Gets the <see cref="AttributeNames.Src"/> attribute from the element.
+    ///     The result is the absolute unescaped uri.
+    /// </summary>
+    [return: NotNullIfNotNull(nameof(defaultValue))]
     public static T? Src<T>(this INode node, T? defaultValue)
     {
-        var value = node.Src(null);
+        var value = Src(node, null);
 
         if (value is null)
         {
@@ -146,17 +250,26 @@ public static class NodeExtensions
 
     #region Href
 
+    /// <summary>
+    ///     Gets the <see cref="AttributeNames.Href"/> attribute from the element.
+    ///     The result is the absolute unescaped uri.
+    /// </summary>
+    /// <exception cref="AttributeNotFoundException">The attribute <see cref="AttributeNames.Href"/> is not present.</exception>
     public static Uri Href(this INode node)
     {
-        var value = node.Attr(AttributeNames.Href);
+        var value = Attr(node, AttributeNames.Href);
 
         return GetUri(node, value);
     }
 
-    [return: NotNullIfNotNull("defaultValue")]
+    /// <summary>
+    ///     Gets the <see cref="AttributeNames.Href"/> attribute from the element.
+    ///     The result is the absolute unescaped uri.
+    /// </summary>
+    [return: NotNullIfNotNull(nameof(defaultValue))]
     public static Uri? Href(this INode node, Uri? defaultValue)
     {
-        var value = node.Attr(AttributeNames.Href, null);
+        var value = Attr(node, AttributeNames.Href, null);
 
         if (value is null)
         {
@@ -166,17 +279,26 @@ public static class NodeExtensions
         return GetUri(node, value);
     }
 
+    /// <summary>
+    ///     Gets the <see cref="AttributeNames.Href"/> attribute from the element.
+    ///     The result is the absolute unescaped uri.
+    /// </summary>
+    /// <exception cref="AttributeNotFoundException">The attribute <see cref="AttributeNames.Href"/> is not present.</exception>
     public static T Href<T>(this INode node)
     {
-        var value = node.Href();
+        var value = Href(node);
 
         return ChangeType<T>(value.GetComponents(UriComponents.AbsoluteUri, UriFormat.Unescaped));
     }
 
-    [return: NotNullIfNotNull("defaultValue")]
+    /// <summary>
+    ///     Gets the <see cref="AttributeNames.Href"/> attribute from the element.
+    ///     The result is the absolute unescaped uri.
+    /// </summary>
+    [return: NotNullIfNotNull(nameof(defaultValue))]
     public static T? Href<T>(this INode node, T? defaultValue)
     {
-        var value = node.Href(null);
+        var value = Href(node, null);
 
         if (value is null)
         {
@@ -190,9 +312,24 @@ public static class NodeExtensions
 
     #region Select from INode
 
-    public static INode? Css(this INode node, string selector) => node.Select(NodeSelector.Css(selector));
-    public static INode? XPath(this INode node, string selector) => node.Select(NodeSelector.XPath(selector));
-    public static INode? XPath(this INode node, XPathExpression selector) => node.Select(NodeSelector.XPath(selector));
+    /// <summary>
+    ///     Returns the first element that matches the specified Css selector.
+    /// </summary>
+    public static INode? Css(this INode node, string selector) => Select(node, NodeSelector.Css(selector));
+
+    /// <summary>
+    ///     Returns the first element that matches the specified XPath selector.
+    /// </summary>
+    public static INode? XPath(this INode node, string selector) => Select(node, NodeSelector.XPath(selector));
+
+    /// <summary>
+    ///     Returns the first element that matches the specified XPath selector.
+    /// </summary>
+    public static INode? XPath(this INode node, XPathExpression selector) => Select(node, NodeSelector.XPath(selector));
+
+    /// <summary>
+    ///     Returns the first element found by the specified selector.
+    /// </summary>
     public static INode? Select(this INode node, NodeSelector selector)
     {
         if (node is IDocument document)
@@ -203,9 +340,28 @@ public static class NodeExtensions
         return selector.Select(node);
     }
 
-    public static INode CssOrFail(this INode node, string selector) => node.SelectOrFail(NodeSelector.Css(selector));
-    public static INode XPathOrFail(this INode node, string selector) => node.SelectOrFail(NodeSelector.XPath(selector));
-    public static INode XPathOrFail(this INode node, XPathExpression selector) => node.SelectOrFail(NodeSelector.XPath(selector));
+    /// <summary>
+    ///     Returns the first element that matches the specified Css selector, or fail.
+    /// </summary>
+    /// <exception cref="NodeNotFoundException"></exception>
+    public static INode CssOrFail(this INode node, string selector) => SelectOrFail(node, NodeSelector.Css(selector));
+
+    /// <summary>
+    ///     Returns the first element that matches the specified XPath selector, or fail.
+    /// </summary>
+    /// <exception cref="NodeNotFoundException"></exception>
+    public static INode XPathOrFail(this INode node, string selector) => SelectOrFail(node, NodeSelector.XPath(selector));
+
+    /// <summary>
+    ///     Returns the first element that matches the specified XPath selector, or fail.
+    /// </summary>
+    /// <exception cref="NodeNotFoundException"></exception>
+    public static INode XPathOrFail(this INode node, XPathExpression selector) => SelectOrFail(node, NodeSelector.XPath(selector));
+
+    /// <summary>
+    ///     Returns the first element found by the specified selector, or fail.
+    /// </summary>
+    /// <exception cref="NodeNotFoundException"></exception>
     public static INode SelectOrFail(this INode node, NodeSelector selector)
     {
         if (node is IDocument document)
@@ -223,9 +379,24 @@ public static class NodeExtensions
         return selectedNode;
     }
 
-    public static INodeList CssAll(this INode node, string selector) => node.SelectAll(NodeSelector.Css(selector));
-    public static INodeList XPathAll(this INode node, string selector) => node.SelectAll(NodeSelector.XPath(selector));
-    public static INodeList XPathAll(this INode node, XPathExpression selector) => node.SelectAll(NodeSelector.XPath(selector));
+    /// <summary>
+    ///     Returns all the elements that matches the specified Css selector.
+    /// </summary>
+    public static INodeList CssAll(this INode node, string selector) => SelectAll(node, NodeSelector.Css(selector));
+
+    /// <summary>
+    ///     Returns all the elements that matches the specified XPath selector.
+    /// </summary>
+    public static INodeList XPathAll(this INode node, string selector) => SelectAll(node, NodeSelector.XPath(selector));
+
+    /// <summary>
+    ///     Returns all the elements that matches the specified XPath selector.
+    /// </summary>
+    public static INodeList XPathAll(this INode node, XPathExpression selector) => SelectAll(node, NodeSelector.XPath(selector));
+
+    /// <summary>
+    ///     Returns all the elements found by the specified selector.
+    /// </summary>
     public static INodeList SelectAll(this INode node, NodeSelector selector)
     {
         if (node is IDocument document)
@@ -238,19 +409,152 @@ public static class NodeExtensions
 
     #endregion
 
+    #region Select <T> from INode
+
+    /// <summary>
+    ///     Returns the first element that matches the specified Css selector.
+    /// </summary>
+    public static T? Css<T>(this INode node, string selector) where T : INode => Select<T>(node, NodeSelector.Css(selector));
+
+    /// <summary>
+    ///     Returns the first element that matches the specified XPath selector.
+    /// </summary>
+    public static T? XPath<T>(this INode node, string selector) where T : INode => Select<T>(node, NodeSelector.XPath(selector));
+
+    /// <summary>
+    ///     Returns the first element that matches the specified XPath selector.
+    /// </summary>
+    public static T? XPath<T>(this INode node, XPathExpression selector) where T : INode => Select<T>(node, NodeSelector.XPath(selector));
+
+    /// <summary>
+    ///     Returns the first element found by the specified selector.
+    /// </summary>
+    public static T? Select<T>(this INode node, NodeSelector selector) where T : INode
+    {
+        if (node is IDocument document)
+        {
+            node = document.DocumentElement;
+        }
+
+        return selector.Select(node) is T t ? t : default;
+    }
+
+    /// <summary>
+    ///     Returns the first element that matches the specified Css selector, or fail.
+    /// </summary>
+    /// <exception cref="NodeNotFoundException"></exception>
+    public static T CssOrFail<T>(this INode node, string selector) where T : INode => SelectOrFail<T>(node, NodeSelector.Css(selector));
+
+    /// <summary>
+    ///     Returns the first element that matches the specified XPath selector, or fail.
+    /// </summary>
+    /// <exception cref="NodeNotFoundException"></exception>
+    public static T XPathOrFail<T>(this INode node, string selector) where T : INode => SelectOrFail<T>(node, NodeSelector.XPath(selector));
+
+    /// <summary>
+    ///     Returns the first element that matches the specified XPath selector, or fail.
+    /// </summary>
+    /// <exception cref="NodeNotFoundException"></exception>
+    public static T XPathOrFail<T>(this INode node, XPathExpression selector) where T : INode => SelectOrFail<T>(node, NodeSelector.XPath(selector));
+
+    /// <summary>
+    ///     Returns the first element found by the specified selector, or fail.
+    /// </summary>
+    /// <exception cref="NodeNotFoundException"></exception>
+    public static T SelectOrFail<T>(this INode node, NodeSelector selector) where T : INode
+    {
+        if (node is IDocument document)
+        {
+            node = document.DocumentElement;
+        }
+
+        var selectedNode = selector.Select(node);
+
+        if (selectedNode is null)
+        {
+            throw new NodeNotFoundException($"Select '{selector}' not found.", selector.ToString());
+        }
+
+        return selectedNode is T t ? t : throw new InvalidOperationException();
+    }
+
+    /// <summary>
+    ///     Returns all the elements that matches the specified Css selector.
+    /// </summary>
+    public static INodeList CssAll<T>(this INode node, string selector) where T : INode => SelectAll<T>(node, NodeSelector.Css(selector));
+
+    /// <summary>
+    ///     Returns all the elements that matches the specified XPath selector.
+    /// </summary>
+    public static INodeList XPathAll<T>(this INode node, string selector) where T : INode => SelectAll<T>(node, NodeSelector.XPath(selector));
+
+    /// <summary>
+    ///     Returns all the elements that matches the specified XPath selector.
+    /// </summary>
+    public static INodeList XPathAll<T>(this INode node, XPathExpression selector) where T : INode => SelectAll<T>(node, NodeSelector.XPath(selector));
+
+    /// <summary>
+    ///     Returns all the elements found by the specified selector.
+    /// </summary>
+    public static INodeList SelectAll<T>(this INode node, NodeSelector selector) where T : INode
+    {
+        if (node is IDocument document)
+        {
+            node = document.DocumentElement;
+        }
+
+        return new NodeList((IEnumerable<INode>)selector.SelectAll(node).OfType<T>());
+    }
+
+    #endregion
+
     #region Select from INodeList
 
-    public static INode? Css(this IEnumerable<INode> nodes, string selector) => nodes.Select(NodeSelector.Css(selector));
-    public static INode? XPath(this IEnumerable<INode> nodes, string selector) => nodes.Select(NodeSelector.XPath(selector));
-    public static INode? XPath(this IEnumerable<INode> nodes, XPathExpression selector) => nodes.Select(NodeSelector.XPath(selector));
+    /// <summary>
+    ///     Returns the first element that matches the specified Css selector.
+    /// </summary>
+    public static INode? Css(this IEnumerable<INode> nodes, string selector) => Select(nodes, NodeSelector.Css(selector));
+
+    /// <summary>
+    ///     Returns the first element that matches the specified XPath selector.
+    /// </summary>
+    public static INode? XPath(this IEnumerable<INode> nodes, string selector) => Select(nodes, NodeSelector.XPath(selector));
+
+    /// <summary>
+    ///     Returns the first element that matches the specified XPath selector.
+    /// </summary>
+    public static INode? XPath(this IEnumerable<INode> nodes, XPathExpression selector) => Select(nodes, NodeSelector.XPath(selector));
+
+    /// <summary>
+    ///     Returns the first element found by the specified selector.
+    /// </summary>
     public static INode? Select(this IEnumerable<INode> nodes, NodeSelector selector)
     {
         return selector.Select(nodes);
     }
 
-    public static INode CssOrFail(this IEnumerable<INode> nodes, string selector) => nodes.SelectOrFail(NodeSelector.Css(selector));
-    public static INode XPathOrFail(this IEnumerable<INode> nodes, string selector) => nodes.SelectOrFail(NodeSelector.XPath(selector));
-    public static INode XPathOrFail(this IEnumerable<INode> nodes, XPathExpression selector) => nodes.SelectOrFail(NodeSelector.XPath(selector));
+    /// <summary>
+    ///     Returns the first element that matches the specified Css selector, or fail.
+    /// </summary>
+    /// <exception cref="NodeNotFoundException"></exception>
+    public static INode CssOrFail(this IEnumerable<INode> nodes, string selector) => SelectOrFail(nodes, NodeSelector.Css(selector));
+
+    /// <summary>
+    ///     Returns the first element that matches the specified XPath selector, or fail.
+    /// </summary>
+    /// <exception cref="NodeNotFoundException"></exception>
+    public static INode XPathOrFail(this IEnumerable<INode> nodes, string selector) => SelectOrFail(nodes, NodeSelector.XPath(selector));
+
+    /// <summary>
+    ///     Returns the first element that matches the specified XPath selector, or fail.
+    /// </summary>
+    /// <exception cref="NodeNotFoundException"></exception>
+    public static INode XPathOrFail(this IEnumerable<INode> nodes, XPathExpression selector) => SelectOrFail(nodes, NodeSelector.XPath(selector));
+
+    /// <summary>
+    ///     Returns the first element found by the specified selector, or fail.
+    /// </summary>
+    /// <exception cref="NodeNotFoundException"></exception>
     public static INode SelectOrFail(this IEnumerable<INode> nodes, NodeSelector selector)
     {
         var selectedNode = selector.Select(nodes);
@@ -263,9 +567,24 @@ public static class NodeExtensions
         return selectedNode;
     }
 
-    public static INodeList CssAll(this IEnumerable<INode> nodes, string selector) => nodes.SelectAll(NodeSelector.Css(selector));
-    public static INodeList XPathAll(this IEnumerable<INode> nodes, string selector) => nodes.SelectAll(NodeSelector.XPath(selector));
-    public static INodeList XPathAll(this IEnumerable<INode> nodes, XPathExpression selector) => nodes.SelectAll(NodeSelector.XPath(selector));
+    /// <summary>
+    ///     Returns all the elements that matches the specified Css selector.
+    /// </summary>
+    public static INodeList CssAll(this IEnumerable<INode> nodes, string selector) => SelectAll(nodes, NodeSelector.Css(selector));
+
+    /// <summary>
+    ///     Returns all the elements that matches the specified XPath selector.
+    /// </summary>
+    public static INodeList XPathAll(this IEnumerable<INode> nodes, string selector) => SelectAll(nodes, NodeSelector.XPath(selector));
+
+    /// <summary>
+    ///     Returns all the elements that matches the specified XPath selector.
+    /// </summary>
+    public static INodeList XPathAll(this IEnumerable<INode> nodes, XPathExpression selector) => SelectAll(nodes, NodeSelector.XPath(selector));
+
+    /// <summary>
+    ///     Returns all the elements found by the specified selector.
+    /// </summary>
     public static INodeList SelectAll(this IEnumerable<INode> nodes, NodeSelector selector)
     {
         return new NodeList(selector.SelectAll(nodes));

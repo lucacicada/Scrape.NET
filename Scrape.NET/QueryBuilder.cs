@@ -46,7 +46,8 @@ public class QueryBuilder : IEnumerable<KeyValuePair<string?, string[]>>
     {
         if (uri is null) throw new ArgumentNullException(nameof(uri));
 
-        uriBuilder = new UriBuilder(uri);
+        // this will throw UriFormatException if the uri is not absolute
+        uriBuilder = new UriBuilder(new Uri(uri, UriKind.Absolute));
         query = HttpUtility.ParseQueryString(uriBuilder.Query); // HttpUtility is kinda obsolete
     }
 
@@ -55,9 +56,11 @@ public class QueryBuilder : IEnumerable<KeyValuePair<string?, string[]>>
     /// </summary>
     /// <param name="uri">The base uri.</param>
     /// <exception cref="ArgumentNullException"><paramref name="uri"/> is null.</exception>
+    /// <exception cref="UriFormatException"><paramref name="uri"/> is not a valid uri.</exception>
     public QueryBuilder(Uri uri)
     {
         if (uri is null) throw new ArgumentNullException(nameof(uri));
+        if (!uri.IsAbsoluteUri) throw new UriFormatException("The URI is not absolute.");
 
         uriBuilder = new UriBuilder(uri);
         query = HttpUtility.ParseQueryString(uriBuilder.Query); // HttpUtility is kinda obsolete

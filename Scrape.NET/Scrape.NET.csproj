@@ -6,6 +6,7 @@
 		<Description>A scraper library for .NET</Description>
 		<RootNamespace>Scrape.NET</RootNamespace>
 		<Nullable>enable</Nullable>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<IsPackable>true</IsPackable>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>

@@ -12,6 +12,9 @@ using AngleSharp.Io;
 using AngleSharp.Xml.Dom;
 using HttpMethod = System.Net.Http.HttpMethod;
 
+/// <summary>
+///     Represents set of extensions methods to interact with HTTP requests.
+/// </summary>
 public static class HttpExtensions
 {
     #region EnsureContentType
@@ -170,7 +173,9 @@ public static class HttpExtensions
         });
     }
 
-    //
+    /// <summary>
+    ///     Send an HTTP request as an asynchronous operation.
+    /// </summary>
     public static async Task<DefaultResponse> SendAsync(this HttpClient client, Request request)
     {
         if (client is null) throw new ArgumentNullException(nameof(client));
@@ -182,6 +187,9 @@ public static class HttpExtensions
 
         return response;
     }
+    /// <summary>
+    ///     Send an HTTP request as an asynchronous operation.
+    /// </summary>
     public static async Task<DefaultResponse> SendAsync(this HttpClient client, Request request, CancellationToken cancellationToken)
     {
         if (client is null) throw new ArgumentNullException(nameof(client));
@@ -193,6 +201,9 @@ public static class HttpExtensions
 
         return response;
     }
+    /// <summary>
+    ///     Send an HTTP request as an asynchronous operation.
+    /// </summary>
     public static async Task<DefaultResponse> SendAsync(this HttpClient client, Request request, HttpCompletionOption completionOption)
     {
         if (client is null) throw new ArgumentNullException(nameof(client));
@@ -204,6 +215,9 @@ public static class HttpExtensions
 
         return response;
     }
+    /// <summary>
+    ///     Send an HTTP request as an asynchronous operation.
+    /// </summary>
     public static async Task<DefaultResponse> SendAsync(this HttpClient client, Request request, HttpCompletionOption completionOption, CancellationToken cancellationToken)
     {
         if (client is null) throw new ArgumentNullException(nameof(client));
@@ -216,11 +230,19 @@ public static class HttpExtensions
         return response;
     }
 
-    //
+    /// <summary>
+    ///     Send an HTTP request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> SendAsync<T>(this HttpClient client, Request request) =>
         await SendAsync<T>(client, request, CancellationToken.None);
+    /// <summary>
+    ///     Send an HTTP request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> SendAsync<T>(this HttpClient client, HttpRequestMessage request) =>
         await SendAsync<T>(client, request, CancellationToken.None);
+    /// <summary>
+    ///     Send an HTTP request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> SendAsync<T>(this HttpClient client, Request request, CancellationToken cancellationToken)
     {
         if (client is null) throw new ArgumentNullException(nameof(client));
@@ -230,6 +252,9 @@ public static class HttpExtensions
 
         return await SendAsync<T>(client, requestMessage, cancellationToken).ConfigureAwait(false);
     }
+    /// <summary>
+    ///     Send an HTTP request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> SendAsync<T>(this HttpClient client, HttpRequestMessage request, CancellationToken cancellationToken)
     {
         if (client is null) throw new ArgumentNullException(nameof(client));
@@ -276,53 +301,109 @@ public static class HttpExtensions
         }
     }
 
-    //
+
+    /// <summary>
+    ///      Send a GET request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> GetAsync<T>(this HttpClient client, string? requestUri) =>
         await SendAsync<T>(client, new HttpRequestMessage(HttpMethod.Get, requestUri), CancellationToken.None);
+    /// <summary>
+    ///      Send a GET request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> GetAsync<T>(this HttpClient client, Uri? requestUri) =>
         await SendAsync<T>(client, new HttpRequestMessage(HttpMethod.Get, requestUri), CancellationToken.None);
+    /// <summary>
+    ///      Send a GET request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> GetAsync<T>(this HttpClient client, string? requestUri, CancellationToken cancellationToken) =>
         await SendAsync<T>(client, new HttpRequestMessage(HttpMethod.Get, requestUri), cancellationToken);
+    /// <summary>
+    ///      Send a GET request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> GetAsync<T>(this HttpClient client, Uri? requestUri, CancellationToken cancellationToken) =>
         await SendAsync<T>(client, new HttpRequestMessage(HttpMethod.Get, requestUri), cancellationToken);
 
-    //
+    /// <summary>
+    ///      Send a POST request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> PostAsync<T>(this HttpClient client, string? requestUri) =>
         await SendAsync<T>(client, new HttpRequestMessage(HttpMethod.Post, requestUri), CancellationToken.None);
+    /// <summary>
+    ///      Send a POST request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> PostAsync<T>(this HttpClient client, Uri? requestUri) =>
         await SendAsync<T>(client, new HttpRequestMessage(HttpMethod.Post, requestUri), CancellationToken.None);
+    /// <summary>
+    ///      Send a POST request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> PostAsync<T>(this HttpClient client, string? requestUri, CancellationToken cancellationToken) =>
         await SendAsync<T>(client, new HttpRequestMessage(HttpMethod.Post, requestUri), cancellationToken);
+    /// <summary>
+    ///      Send a POST request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> PostAsync<T>(this HttpClient client, Uri? requestUri, CancellationToken cancellationToken) =>
         await SendAsync<T>(client, new HttpRequestMessage(HttpMethod.Post, requestUri), cancellationToken);
 
-    //
+    /// <summary>
+    ///      Send a PUT request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> PutAsync<T>(this HttpClient client, string? requestUri) =>
         await SendAsync<T>(client, new HttpRequestMessage(HttpMethod.Put, requestUri), CancellationToken.None);
+    /// <summary>
+    ///      Send a PUT request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> PutAsync<T>(this HttpClient client, Uri? requestUri) =>
         await SendAsync<T>(client, new HttpRequestMessage(HttpMethod.Put, requestUri), CancellationToken.None);
+    /// <summary>
+    ///      Send a PUT request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> PutAsync<T>(this HttpClient client, string? requestUri, CancellationToken cancellationToken) =>
         await SendAsync<T>(client, new HttpRequestMessage(HttpMethod.Put, requestUri), cancellationToken);
+    /// <summary>
+    ///      Send a PUT request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> PutAsync<T>(this HttpClient client, Uri? requestUri, CancellationToken cancellationToken) =>
         await SendAsync<T>(client, new HttpRequestMessage(HttpMethod.Put, requestUri), cancellationToken);
 
-    //
+    /// <summary>
+    ///      Send a PATCH request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> PatchAsync<T>(this HttpClient client, string? requestUri) =>
         await SendAsync<T>(client, new HttpRequestMessage(HttpMethod.Patch, requestUri), CancellationToken.None);
+    /// <summary>
+    ///      Send a PATCH request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> PatchAsync<T>(this HttpClient client, Uri? requestUri) =>
         await SendAsync<T>(client, new HttpRequestMessage(HttpMethod.Patch, requestUri), CancellationToken.None);
+    /// <summary>
+    ///      Send a PATCH request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> PatchAsync<T>(this HttpClient client, string? requestUri, CancellationToken cancellationToken) =>
         await SendAsync<T>(client, new HttpRequestMessage(HttpMethod.Patch, requestUri), cancellationToken);
+    /// <summary>
+    ///      Send a PATCH request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> PatchAsync<T>(this HttpClient client, Uri? requestUri, CancellationToken cancellationToken) =>
         await SendAsync<T>(client, new HttpRequestMessage(HttpMethod.Patch, requestUri), cancellationToken);
 
-    //
+    /// <summary>
+    ///      Send a DELETE request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> DeleteAsync<T>(this HttpClient client, string? requestUri) =>
         await SendAsync<T>(client, new HttpRequestMessage(HttpMethod.Delete, requestUri), CancellationToken.None);
+    /// <summary>
+    ///      Send a DELETE request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> DeleteAsync<T>(this HttpClient client, Uri? requestUri) =>
         await SendAsync<T>(client, new HttpRequestMessage(HttpMethod.Delete, requestUri), CancellationToken.None);
+    /// <summary>
+    ///      Send a DELETE request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> DeleteAsync<T>(this HttpClient client, string? requestUri, CancellationToken cancellationToken) =>
         await SendAsync<T>(client, new HttpRequestMessage(HttpMethod.Delete, requestUri), cancellationToken);
+    /// <summary>
+    ///      Send a DELETE request as an asynchronous operation.
+    /// </summary>
     public static async Task<T> DeleteAsync<T>(this HttpClient client, Uri? requestUri, CancellationToken cancellationToken) =>
         await SendAsync<T>(client, new HttpRequestMessage(HttpMethod.Delete, requestUri), cancellationToken);
 }

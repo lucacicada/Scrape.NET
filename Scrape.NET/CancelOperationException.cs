@@ -2,6 +2,9 @@
 
 using System;
 
+/// <summary>
+///     The exception that is thrown when is intended to cancel an operation without resulting in an error.
+/// </summary>
 public sealed class CancelOperationException : Exception
 {
     /// <summary>Initializes a new instance of the <see cref="CancelOperationException" /> class.</summary>

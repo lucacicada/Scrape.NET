@@ -3,6 +3,9 @@
 using System;
 using System.Runtime.Serialization;
 
+/// <summary>
+///     The exception that is thrown when the "Content-Type" header does not match the expected value.
+/// </summary>
 public class ContentTypeMismatchException : Exception
 {
     private static string CreateMessage(string? message, string? expectedType, string? receivedType)
@@ -10,16 +13,30 @@ public class ContentTypeMismatchException : Exception
         return message ?? $"Invalid content type, epxected '{expectedType}', found: '{receivedType}'";
     }
 
+    /// <summary>
+    ///     The expected "Content-Type" header.
+    /// </summary>
     public string? ExpectedType { get; }
+
+    /// <summary>
+    ///     The actual "Content-Type" header.
+    /// </summary>
     public string? ReceivedType { get; }
 
     /// <summary>Initializes a new instance of the <see cref="ContentTypeMismatchException" /> class.</summary>
-    public ContentTypeMismatchException(string expectedType, string? receivedType)
-        : base(CreateMessage(null, expectedType, receivedType))
+    public ContentTypeMismatchException()
     {
-        ExpectedType = expectedType;
-        ReceivedType = receivedType;
     }
+
+    ///// <summary>Initializes a new instance of the <see cref="ContentTypeMismatchException" /> class.</summary>
+    ///// <param name="expectedType">The expected "Content-Type" header.</param>
+    ///// <param name="receivedType">The actual "Content-Type" header.</param>
+    //public ContentTypeMismatchException(string expectedType, string? receivedType)
+    //    : base(CreateMessage(null, expectedType, receivedType))
+    //{
+    //    ExpectedType = expectedType;
+    //    ReceivedType = receivedType;
+    //}
 
     /// <summary>Initializes a new instance of the <see cref="ContentTypeMismatchException" /> class with serialized data.</summary>
     /// <param name="info">The <see cref="SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
@@ -34,6 +51,8 @@ public class ContentTypeMismatchException : Exception
 
     /// <summary>Initializes a new instance of the <see cref="ContentTypeMismatchException" /> class with a specified error message.</summary>
     /// <param name="message">The message that describes the error.</param>
+    /// <param name="expectedType">The expected "Content-Type" header.</param>
+    /// <param name="receivedType">The actual "Content-Type" header.</param>
     public ContentTypeMismatchException(string? message, string? expectedType, string? receivedType)
         : base(CreateMessage(message, expectedType, receivedType))
     {
@@ -43,6 +62,8 @@ public class ContentTypeMismatchException : Exception
 
     /// <summary>Initializes a new instance of the <see cref="ContentTypeMismatchException" /> class with a specified error message and a reference to the inner exception that is the cause of this exception.</summary>
     /// <param name="message">The error message that explains the reason for the exception.</param>
+    /// <param name="expectedType">The expected "Content-Type" header.</param>
+    /// <param name="receivedType">The actual "Content-Type" header.</param>
     /// <param name="innerException">The exception that is the cause of the current exception, or a null reference (<see langword="Nothing" /> in Visual Basic) if no inner exception is specified.</param>
     public ContentTypeMismatchException(string? message, string? expectedType, string? receivedType, Exception innerException)
         : base(CreateMessage(message, expectedType, receivedType), innerException)

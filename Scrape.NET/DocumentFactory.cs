@@ -11,8 +11,15 @@ using AngleSharp.Dom;
 using AngleSharp.Io;
 using HttpMethod = System.Net.Http.HttpMethod;
 
+/// <summary>
+///     Represents a way to convert between <see cref="AngleSharp"/> and <see cref="System.Net.Http"/>.
+/// </summary>
 public static class DocumentFactory
 {
+    /// <summary>
+    ///     Creates an <see cref="HttpMethod"/> from the <see cref="AngleSharp.Io.HttpMethod"/> enum.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
     public static HttpMethod CreateHttpMethod(AngleSharp.Io.HttpMethod method) => method switch
     {
         AngleSharp.Io.HttpMethod.Get => HttpMethod.Get,
