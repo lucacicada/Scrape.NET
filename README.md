@@ -67,6 +67,12 @@ html.CssOrFail("title");
     - [Sub-select](#sub-select)
   - [Select an attribute](#select-an-attribute)
   - [Get the normalized href attribute](#get-the-normalized-href-attribute)
+- [FileStreamContent](#filestreamcontent)
+- [HttpResponseMessage Serialization to JSON](#httpresponsemessage-serialization-to-json)
+- [Uber-fast concurrent Console.Write over the current line](#uber-fast-concurrent-consolewrite-over-the-current-line)
+  - [Prevent the blinking of the console](#prevent-the-blinking-of-the-console)
+- [Hide the cursor](#hide-the-cursor)
+- [Turn off Quick Edit on Windows](#turn-off-quick-edit-on-windows)
 - [Example](#example)
 - [Caveats](#caveats)
 
@@ -144,6 +150,193 @@ Uri href = html.CssOrFail("a").Href<Uri>();
 // with a default value
 string href = html.CssOrFail("a").Href("https://...");
 Uri href = html.CssOrFail("a").Href<Uri>("https://...");
+```
+
+## FileStreamContent
+
+Sometimes you may need to download a file while still conserving a reference to that operation in the Http library.
+
+```cs
+// send a request
+HttpResponseMessage responseMessage = await httpClient.SendAsync(..., HttpCompletionOption.ResponseHeadersRead);
+
+// make sure we have a 2xx status code
+responseMessage.EnsureSuccessStatusCode();
+
+// create a temp file
+string tempFile = Path.GetTempFileName();
+
+using (HttpContent content = responseMessage.Content)
+{
+    // download the file
+    using (FileStream fs = File.OpenWrite(tempFile))
+    {
+        await responseMessage.Content.CopyToAsync(fs);
+    }
+
+    // replace the consumed content with a new HttpContent that points to the file on the disk
+    responseMessage.Content = new FileStreamContent(tempFile, deleteOnDispose: false);
+
+    // copy the headers to the new content also
+    foreach (KeyValuePair<string, IEnumerable<string>> header in content.Headers)
+    {
+        responseMessage.Content.Headers.Add(header.Key, header.Value);
+    }
+}
+
+// we can still use responseMessage.Content for other reasons, for example, down-scaling an image
+responseMessage.Content;
+
+// deleteOnDispose is false in this example, so calling dispose will not delete the file
+responseMessage.Content.Dispose();
+
+File.Exists(tempFile); // is true
+```
+
+## HttpResponseMessage Serialization to JSON
+
+> The response content stream will not be serialized to JSON!!!
+
+You can serialize an instance of HttpResponseMessage in JSON with:
+
+```cs
+HttpResponseMessage responseMessage = await httpClient.GetAsync("...");
+
+string json = JsonSerializer.Serialize(responseMessage, new JsonSerializerOptions
+{
+    WriteIndented = true,
+    Converters =
+    {
+        new HttpResponseMessageJsonConverter(),
+    }
+});
+
+// HttpResponseMessageJsonConverter works on Deserialize also!
+```
+
+`HttpResponseMessageJsonConverter` serialize and deserialize the `HttpResponseMessage`.
+
+The result JSON string:
+
+```json
+{
+  "Version": "1.1",
+  "StatusCode": 200,
+  "ReasonPhrase": "OK",
+  "ContentHeaders": [
+    {
+      "Key": "Content-Type",
+      "Value": [
+        "text/html; charset=utf-8"
+      ]
+    },
+    {
+      "Key": "Expires",
+      "Value": [
+        "Mon, 01 Jan 1990 00:00:00 GMT"
+      ]
+    }
+  ],
+  "Headers": [
+    {
+      "Key": "Cache-Control",
+      "Value": [
+        "no-store, must-revalidate, no-cache, max-age=0"
+      ]
+    },
+  ],
+  "TrailingHeaders": [],
+  "RequestMessage": {
+    "Method": "GET",
+    "RequestUri": "https://...",
+    "Version": "1.1",
+    "VersionPolicy": 0,
+    "ContentHeaders": null,
+    "Headers": []
+  }
+}
+```
+
+You can also serialize/deserialize a request with `HttpRequestMessageJsonConverter`.
+
+The library do not hide the implementation details from you:
+
+- [SerializableHttpHeaders](Scrape.NET/Serialization/SerializableHttpHeaders.cs)
+- [SerializableHttpRequestMessage](Scrape.NET/Serialization/SerializableHttpRequestMessage.cs)
+- [SerializableHttpResponseMessage](Scrape.NET/Serialization/SerializableHttpResponseMessage.cs)
+
+You can manually serialize a request with:
+
+```cs
+var serializable = new SerializableHttpRequestMessage(requestMessage);
+
+string json = JsonSerializer.Serialize(serializable);
+
+// get an instance of HttpRequestMessage back
+HttpRequestMessage requestMessage = serializable.ToHttpRequestMessage();
+```
+
+It is very useful when you wish to store an `HttpRequestMessage` in a format that is not JSON, as it basically clone the request into a class that can be easily serialized.
+
+## Uber-fast concurrent Console.Write over the current line
+
+Sometimes you may wish to rewrite very fast over the current line, in a multithreaded highly concurrent operation, in order to do so, you can use:
+
+```cs
+ConsoleEx.ReWrite("Hello World!");
+```
+
+`ConsoleEx.ReWrite` normalize the string, prevents it from overflowing the console width, clean the old line properly, and its extraordinarily fast!
+
+It uses `Interlocked.Exchange` behind the scenes so it drops overlapping calls, make sure at the end of your program to use `Console.WriteLine()` to create a clean new line in which you can write.
+
+Writing to the console can be very slow, `ConsoleEx.ReWrite` helps tremendously but is still limited, if you need to rely on the console output for communicating with other programs, its best if you stick with the traditional console, or if you use a logging library.
+
+### Prevent the blinking of the console
+
+`ConsoleEx.ReWrite` does prevent the console from flashing when used exclusively, this is a way you can test your specific system:
+
+```cs
+Stopwatch stopwatch = Stopwatch.StartNew();
+for (int i = 0; i < 100_000; i++)
+{
+    ConsoleEx.ReWrite($"{i}");
+}
+stopwatch.Stop();
+
+Console.WriteLine(); // start from a new line
+Console.WriteLine("Time elapsed: {0}", stopwatch.Elapsed);
+```
+
+> 99999
+> Time elapsed: 00:00:12.6130886
+
+The speed of the operation depends mostly on your hardware.
+
+## Hide the cursor
+
+It can be useful to hide the cursor:
+
+```cs
+using (ConsoleEx.HideCursor())
+{
+    ExecuteSomeCode();
+}
+```
+
+## Turn off Quick Edit on Windows
+
+Quick Edit is a feature of the windows console to suspend the program execution when the user click on the terminal.
+
+```cs
+// disable Quick Edit
+ConsoleEx.EnableQuickEdit(false);
+```
+
+The code does nothing on a non Windows platform, however it still return false. To check if the current system is Windows, use:
+
+```cs
+bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 ```
 
 ## Example
