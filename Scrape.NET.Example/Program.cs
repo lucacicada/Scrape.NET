@@ -1,6 +1,5 @@
 ﻿namespace ExampleConsoleApp;
 
-using System.Net.Http;
 using AngleSharp.Html.Dom;
 using Scrape.NET;
 
